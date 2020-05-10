@@ -1,0 +1,4 @@
+build
+dist
+*.egg-info
+winner_app/__pycache__

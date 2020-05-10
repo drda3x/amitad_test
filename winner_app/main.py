@@ -3,7 +3,10 @@
 import dateutil
 from dateutil import parser
 from functools import partial
-from flask import Flask
+from flask import Flask, request
+import json
+
+app = Flask(__name__)
 
 def load_data():
     data = [
@@ -102,8 +105,9 @@ def check_record(record1, record2):
                 record1['document.location'] == record2['document.referer']
 
 
+@app.route("/")
 def main():
-    log = load_data()
+    log = json.loads(request.args.get('log'))
     is_winner = partial(check_str, 'shop.com/checkout')
     is_ours = partial(check_str, 'referal.ours.com')
     winners = []
@@ -118,10 +122,9 @@ def main():
                 winner_record['document.referer'] = record['document.referer']
 
     result = [winner for winner in winners if is_ours(winner['document.referer'])]
-    return result
+
+    return json.dumps(result)
+
 
 if __name__ == "__main__":
-    our_winners = main()
-
-    for link in our_winners:
-        print("{};{};{}".format(link['client_id'], link['User-Agent'], link["document.referer"]))
+    app.run()
