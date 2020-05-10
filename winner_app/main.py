@@ -4,6 +4,7 @@ import dateutil
 from dateutil import parser
 from functools import partial
 from flask import Flask, request
+import argparse
 import json
 
 
@@ -44,4 +45,8 @@ def main():
 
 
 if __name__ == "__main__":
-    app.run()
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("-H", '--host', default='127.0.0.1', type=str, help="application host")
+    arg_parser.add_argument("-P", '--port', default=5000, type=int, help="application port")
+    args = arg_parser.parse_args()
+    app.run(host=args.host, port=args.port)
