@@ -6,93 +6,8 @@ from functools import partial
 from flask import Flask, request
 import json
 
+
 app = Flask(__name__)
-
-def load_data():
-    data = [
-    {
-        "client_id": "user7",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/",
-        "document.referer": "https://referal.ours.com/?ref=0xc0ffee",
-        "date": "2018-05-23T18:59:13.286000Z"
-    },
-    {
-        "client_id": "user7",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/products/id?=10",
-        "document.referer": "https://shop.com/",
-        "date": "2018-05-23T18:59:20.119000Z"
-    },
-    {
-        "client_id": "user7",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/products/id?=25",
-        "document.referer": "https://shop.com/products/id?=10",
-        "date": "2018-05-23T19:04:20.119000Z"
-    },
-    {
-        "client_id": "user7",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/cart",
-        "document.referer": "https://shop.com/products/id?=25",
-        "date": "2018-05-23T19:05:13.123000Z"
-    },
-    {
-        "client_id": "user7",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/checkout",
-        "document.referer": "https://shop.com/cart",
-        "date": "2018-05-23T19:05:59.224000Z"
-    },
-    {
-        "client_id": "user8",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/",
-        "document.referer": "https://referal.ours.com/?ref=0xc0ffee",
-        "date": "2018-05-23T18:59:13.286000Z"
-    },
-    {
-        "client_id": "user8",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/products/id?=10",
-        "document.referer": "https://shop.com/",
-        "date": "2018-05-23T18:59:20.119000Z"
-    },
-    {
-        "client_id": "user8",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/products/id?=25",
-        "document.referer": "https://shop.com/products/id?=10",
-        "date": "2018-05-23T19:04:20.119000Z"
-    },
-    {
-        "client_id": "user8",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/cart",
-        "document.referer": "https://shop.com/products/id?=25",
-        "date": "2018-05-23T19:05:13.123000Z"
-    },
-    {
-        "client_id": "user8",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/checkout",
-        "document.referer": "https://shop.com/cart",
-        "date": "2018-05-23T19:05:59.224000Z"
-    },
-    {
-        "client_id": "user8",
-        "User-Agent": "Chrome 65",
-        "document.location": "https://shop.com/checkout",
-        "document.referer": "https://shop.com/cart",
-        "date": "2018-05-23T19:05:59.224000Z"
-    }
-    ]
-
-    for record in data:
-        record['date'] = parser.isoparse(record['date'])
-
-    return data
 
 
 def check_str(sub_str, in_str):
@@ -105,14 +20,12 @@ def check_record(record1, record2):
                 record1['document.location'] == record2['document.referer']
 
 
-@app.route("/")
-def main():
-    log = json.loads(request.args.get('log'))
-    is_winner = partial(check_str, 'shop.com/checkout')
-    is_ours = partial(check_str, 'referal.ours.com')
+def find_winners(data, seach_link, win_link):
+    is_winner = partial(check_str, win_link)
+    is_ours = partial(check_str, seach_link)
     winners = []
 
-    for record in sorted(log, key=lambda x: x['date'], reverse=True):
+    for record in sorted(data, key=lambda x: parser.isoparse(x['date']), reverse=True):
         if is_winner(record['document.location']):
             winners.append(record)
             continue
@@ -121,9 +34,13 @@ def main():
             if check_record(record, winner_record):
                 winner_record['document.referer'] = record['document.referer']
 
-    result = [winner for winner in winners if is_ours(winner['document.referer'])]
+    return [winner for winner in winners if is_ours(winner['document.referer'])]
 
-    return json.dumps(result)
+
+@app.route("/")
+def main():
+    log = json.loads(request.args.get('log'))
+    return json.dumps(find_winners(log, 'referal.ours.com', 'https://shop.com/checkout'))
 
 
 if __name__ == "__main__":

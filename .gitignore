@@ -2,3 +2,4 @@ build
 dist
 *.egg-info
 winner_app/__pycache__
+test/__pycache__
