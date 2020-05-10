@@ -12,16 +12,43 @@ app = Flask(__name__)
 
 
 def check_str(sub_str, in_str):
+    """
+    Syntax sugar
+
+    @param sub_str<str>
+    @param in_str<str>
+
+    @return <bool>
+    """
+
     return sub_str in in_str
 
 
 def check_record(record1, record2):
+    """
+    Function to check if the record2 follows the record1
+
+    @param record1<dict>
+    @param record2<dict>
+
+    @return <bool>
+    """
     return record1['client_id'] == record2['client_id'] and \
                 record1['User-Agent'] == record2["User-Agent"] and \
                 record1['document.location'] == record2['document.referer']
 
 
 def find_winners(data, seach_link, win_link):
+    """
+    Function to find winner links
+
+    @param data<list(dict)>
+    @param search_link<str>
+    @param win_link<str>
+
+    @return <list(dict)>
+    """
+
     is_winner = partial(check_str, win_link)
     is_ours = partial(check_str, seach_link)
     winners = []
@@ -40,6 +67,12 @@ def find_winners(data, seach_link, win_link):
 
 @app.route("/")
 def main():
+    """
+    The main function to process requests
+
+    @return <str>
+    """
+
     log = json.loads(request.args.get('log'))
     return json.dumps(find_winners(log, 'referal.ours.com', 'https://shop.com/checkout'))
 
